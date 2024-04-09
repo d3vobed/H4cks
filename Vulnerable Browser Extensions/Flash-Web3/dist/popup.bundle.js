@@ -1,4 +1,4 @@
-/******The main stuffs**/ 
+/******The main stuffs** / 
 document.getElementById('fetchBalance').addEventListener('click', function() {
     var addresses = document.getElementById('ethAddress').value.split(','); // Split input by comma to handle multiple addresses
     if (addresses.length > 0) {

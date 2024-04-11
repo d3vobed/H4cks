@@ -1,0 +1,11 @@
+{
+    "manifest_version": 3,
+    "name": "Flash-Web3 Ethereum Extension",
+    "version": "1",
+    "icon": "1.png", 
+    "description": "Web3 Extension to view Ether balances on Ethereum",
+    "flag": "{y0u_th4nk_th1s_1s_3asy}",
+    "action": {
+        "default_popup": "popup.html"
+    }
+}

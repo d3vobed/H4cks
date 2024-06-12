@@ -16,7 +16,7 @@ WORKDIR /app/ollama_model
 EXPOSE 8000
 
 # Run the Ollama model server
-CMD ["python", "ollama_model.py"]
+CMD ["python", "ollama_logger.py"]
 EOF
 
 # Build and run Docker container

@@ -45,7 +45,7 @@ highlightEnabled = True
 
 # Set multi-vulnerable parameter group color
 multipleVulnColor = "MAGENTA"
-groups = [ssrf, sql, xss, lfi, or_, rce]
+groups = [ssrf, open-redirect, sql, xss, lfi, or_, rce]
 foundParams = HashSet()
 colorCounts = HashMap()
 combinedNotes = ""

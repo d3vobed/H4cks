@@ -1,4 +1,4 @@
-import requestsimport jwt
+import requests
 import json
 import openai
 from dotenv import load_dotenv

@@ -1,48 +1,21 @@
 package burp.api.montoya;
 
 import burp.api.montoya.burpsuite.BurpSuite;
-import burp.api.montoya.collaborator.Collaborator;
-import burp.api.montoya.comparer.Comparer;
-import burp.api.montoya.decoder.Decoder;
 import burp.api.montoya.extension.Extension;
-import burp.api.montoya.http.Http;
-import burp.api.montoya.intruder.Intruder;
-import burp.api.montoya.logging.Logging;
-import burp.api.montoya.organizer.Organizer;
-import burp.api.montoya.persistence.Persistence;
-import burp.api.montoya.proxy.Proxy;
-import burp.api.montoya.repeater.Repeater;
-import burp.api.montoya.scanner.Scanner;
-import burp.api.montoya.scope.Scope;
-import burp.api.montoya.sitemap.SiteMap;
-import burp.api.montoya.ui.UserInterface;
-import burp.api.montoya.utilities.Utilities;
-import burp.api.montoya.websocket.WebSockets;
-
-import burp.api.montoya.MontoyaApi;
+import burp.api.montoya.extension.ExtensionUnloadingHandler;
 import burp.api.montoya.http.HttpRequestResponse;
 import burp.api.montoya.http.message.HighlightColor;
 import burp.api.montoya.http.message.params.HttpParameter;
-import burp.api.montoya.http.message.params.HttpParameterType;
-import burp.api.montoya.extension.BurpExtension;
-import burp.api.montoya.extension.ExtensionUnloadingHandler;
+import burp.api.montoya.proxy.Proxy;
+import burp.api.montoya.utilities.Utilities;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.http.HttpExpection;
 
-public interface MontoyaApi {
-    static class sample_http_requests {
-        final Boolean prediction;
-        final EntityUtils Http.Response;
-        final String jsonify;
-};
+public class BurpBambda implements Extension, ExtensionUnloadingHandler {
 
-public class BurpBambda implements BurpExtension, ExtensionUnloadingHandler {
-    
-    // Define vulnerable parameter group record
     static class VulnParamGroup {
         final String title;
         final HighlightColor color;
@@ -55,27 +28,18 @@ public class BurpBambda implements BurpExtension, ExtensionUnloadingHandler {
         }
     }
 
-    // Vulnerable Parameter Groups
-    VulnParamGroup open-redirect =new VulnParamGrou("OPEN-REDIRECT", "BLUE", "redirect", "dom", "url", "nonce", "iframe.src", "location.href, "sink", "authDisplayType", "inline", "onload", "src_doc" )
-    VulnParamGroup ssrf = new VulnParamGroup("SSRF", HighlightColor.GREEN, "dest", "redirect", "uri", "path", "continue", "url", "window", "next", "data", "reference", "site", "html", "val", "validate", "domain", "callback", "return", "page", "feed", "host", "port", "to", "out", "view", "dir");
-    VulnParamGroup sql = new VulnParamGroup("SQL", HighlightColor.BLUE, "id", "page", "report", "dir", "search", "category", "file", "class", "url", "news", "item", "menu", "lang", "name", "ref", "title", "view", "topic", "thread", "type", "date", "form", "main", "nav", "region");
     VulnParamGroup xss = new VulnParamGroup("XSS", HighlightColor.ORANGE, "q", "s", "search", "id", "lang", "keyword", "query", "page", "keywords", "year", "view", "email", "type", "name", "p", "month", "image", "list_type", "url", "terms", "categoryid", "key", "l", "begindate", "enddate");
-    VulnParamGroup lfi = new VulnParamGroup("LFI", HighlightColor.YELLOW, "cat", "dir", "action", "board", "date", "detail", "file", "download", "path", "folder", "prefix", "include", "page", "inc", "locate", "show", "doc", "site", "type", "view", "content", "document", "layout", "mod", "conf");
-    VulnParamGroup or = new VulnParamGroup("OR", HighlightColor.PINK, "next", "url", "target", "rurl", "dest", "destination", "redir", "redirect_uri", "redirect_url", "redirect", "out", "view", "to", "image_url", "go", "return", "returnTo", "return_to", "checkout_url", "continue", "return_path");
-    VulnParamGroup rce = new VulnParamGroup("RCE", HighlightColor.RED, "cmd", "exec", "command", "execute", "ping", "query", "jump", "code", "reg", "do", "func", "arg", "option", "load", "process", "step", "read", "feature", "exe", "module", "payload", "run", "print");
 
-    // Toggle for highlighting
     boolean highlightEnabled = true;
 
-    // Set multi-vulnerable parameter group color
     HighlightColor multipleVulnColor = HighlightColor.MAGENTA;
-    VulnParamGroup[] groups = {ssrf, open-redirect, sql, xss, lfi, or, rce};
+    VulnParamGroup[] groups = {xss};
     Set<String> foundParams = new HashSet<>();
     Map<HighlightColor, Integer> colorCounts = new HashMap<>();
     String combinedNotes = "";
 
     @Override
-    public void initialize(MontoyaApi api) {
+    public void initialize(BurpSuite api) {
         api.extension().setName("HTTP Smuggling Detector");
         api.proxy().addResponseHandler(this::processProxyMessage);
         api.extension().registerExtensionUnloadingHandler(this);
@@ -93,7 +57,6 @@ public class BurpBambda implements BurpExtension, ExtensionUnloadingHandler {
                         foundParams.add(group.title + ": " + paramName);
                         colorCounts.put(group.color, colorCounts.getOrDefault(group.color, 0) + 1);
                     }
-                    // Return if only one vulnerability class applies
                     if (!highlightEnabled) {
                         requestResponse.annotations().setHighlightColor(group.color);
                         return;
@@ -102,7 +65,6 @@ public class BurpBambda implements BurpExtension, ExtensionUnloadingHandler {
             }
         }
 
-        // If more than one vulnerability class applies set the multi-vulnerable parameter color
         if (!foundParams.isEmpty()) {
             HighlightColor highlightColor = multipleVulnColor;
             if (colorCounts.size() == 1) {
@@ -113,21 +75,6 @@ public class BurpBambda implements BurpExtension, ExtensionUnloadingHandler {
             requestResponse.annotations().setNotes(combinedNotes);
         }
     }
-
-    private entityutils hasNoParameter(http.HttpException request, String paramName) {
-        for (http.HttpParameter param: request.parameters())
-        {
-        if (param.name().equalsNoCase(paramName)) {
-            return true;    // http exception ruleset 
-        }
-    @Override 
-    public static void main (httpExceptionError[] args) {
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-    .uri(URI.create(http://localhost:8000/$URL))
-    .build();
-    }
-}
 
     private boolean hasParameter(HttpRequestResponse request, String paramName) {
         for (HttpParameter param : request.parameters()) {
@@ -140,6 +87,5 @@ public class BurpBambda implements BurpExtension, ExtensionUnloadingHandler {
 
     @Override
     public void extensionUnloaded() {
-        // Cleanup if needed when extension is unloaded
     }
 }

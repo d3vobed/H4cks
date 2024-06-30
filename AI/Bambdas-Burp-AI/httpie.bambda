@@ -1,7 +1,7 @@
-package burp.api.montoya;
+package burp;
 
 import burp.api.montoya.burpsuite.BurpSuite;
-import burp.api.montoya.extension.Extension;
+import burp.api.montoya.extension.BurpExtension;
 import burp.api.montoya.extension.ExtensionUnloadingHandler;
 import burp.api.montoya.http.HttpRequestResponse;
 import burp.api.montoya.http.message.HighlightColor;
@@ -14,7 +14,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class BurpBambda implements Extension, ExtensionUnloadingHandler {
+public class BurpBambda implements BurpExtension, ExtensionUnloadingHandler {
 
     static class VulnParamGroup {
         final String title;
@@ -31,7 +31,6 @@ public class BurpBambda implements Extension, ExtensionUnloadingHandler {
     VulnParamGroup xss = new VulnParamGroup("XSS", HighlightColor.ORANGE, "q", "s", "search", "id", "lang", "keyword", "query", "page", "keywords", "year", "view", "email", "type", "name", "p", "month", "image", "list_type", "url", "terms", "categoryid", "key", "l", "begindate", "enddate");
 
     boolean highlightEnabled = true;
-
     HighlightColor multipleVulnColor = HighlightColor.MAGENTA;
     VulnParamGroup[] groups = {xss};
     Set<String> foundParams = new HashSet<>();
@@ -87,5 +86,6 @@ public class BurpBambda implements Extension, ExtensionUnloadingHandler {
 
     @Override
     public void extensionUnloaded() {
+        // Cleanup if needed when extension is unloaded
     }
 }

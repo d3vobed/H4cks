@@ -1,91 +1,62 @@
 package burp;
 
-import burp.api.montoya.burpsuite.BurpSuite;
-import burp.api.montoya.extension.BurpExtension;
-import burp.api.montoya.extension.ExtensionUnloadingHandler;
-import burp.api.montoya.http.HttpRequestResponse;
-import burp.api.montoya.http.message.HighlightColor;
-import burp.api.montoya.http.message.params.HttpParameter;
-import burp.api.montoya.proxy.Proxy;
-import burp.api.montoya.utilities.Utilities;
+import burp.api.montoya.MontoyaApi;
+import burp.api.montoya.burpextension.BurpExtension;
+import burp.api.montoya.http.HttpRequest;
+import burp.api.montoya.http.HttpResponse;
+import burp.api.montoya.http.listener.HttpListener;
+import burp.api.montoya.logging.Logging;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.List;
+import java.util.regex.Pattern;
 
-public class BurpBambda implements BurpExtension, ExtensionUnloadingHandler {
-
-    static class VulnParamGroup {
-        final String title;
-        final HighlightColor color;
-        final String[] parameterNames;
-
-        VulnParamGroup(String title, HighlightColor color, String... parameterNames) {
-            this.title = title;
-            this.color = color;
-            this.parameterNames = parameterNames;
-        }
-    }
-
-    VulnParamGroup xss = new VulnParamGroup("XSS", HighlightColor.ORANGE, "q", "s", "search", "id", "lang", "keyword", "query", "page", "keywords", "year", "view", "email", "type", "name", "p", "month", "image", "list_type", "url", "terms", "categoryid", "key", "l", "begindate", "enddate");
-
-    boolean highlightEnabled = true;
-    HighlightColor multipleVulnColor = HighlightColor.MAGENTA;
-    VulnParamGroup[] groups = {xss};
-    Set<String> foundParams = new HashSet<>();
-    Map<HighlightColor, Integer> colorCounts = new HashMap<>();
-    String combinedNotes = "";
+public class BurpSuiteFilterExtension implements BurpExtension, HttpListener {
+    private MontoyaApi api;
+    private Logging logging;
 
     @Override
-    public void initialize(BurpSuite api) {
-        api.extension().setName("HTTP Smuggling Detector");
-        api.proxy().addResponseHandler(this::processProxyMessage);
-        api.extension().registerExtensionUnloadingHandler(this);
+    public void initialize(MontoyaApi api) {
+        this.api = api;
+        this.logging = api.logging();
+
+        // Register HTTP listener
+        api.http().registerHttpListener(this);
+
+        logging.logToOutput("BurpSuiteFilterExtension initialized.");
     }
 
-    public void processProxyMessage(HttpRequestResponse requestResponse) {
-        var request = requestResponse.request();
-        foundParams.clear();
-        colorCounts.clear();
+    @Override
+    public void httpRequestReceived(HttpRequestReceivedEvent event) {
+        HttpRequest request = event.getHttpRequest();
 
-        for (VulnParamGroup group : groups) {
-            for (String paramName : group.parameterNames) {
-                if (hasParameter(request, paramName)) {
-                    if (highlightEnabled) {
-                        foundParams.add(group.title + ": " + paramName);
-                        colorCounts.put(group.color, colorCounts.getOrDefault(group.color, 0) + 1);
-                    }
-                    if (!highlightEnabled) {
-                        requestResponse.annotations().setHighlightColor(group.color);
-                        return;
-                    }
-                }
-            }
-        }
-
-        if (!foundParams.isEmpty()) {
-            HighlightColor highlightColor = multipleVulnColor;
-            if (colorCounts.size() == 1) {
-                highlightColor = colorCounts.keySet().iterator().next();
-            }
-            requestResponse.annotations().setHighlightColor(highlightColor);
-            combinedNotes = String.join(", ", foundParams);
-            requestResponse.annotations().setNotes(combinedNotes);
+        if (isOpenRedirect(request)) {
+            logging.logToOutput("Open Redirect detected: " + request.url());
         }
     }
 
-    private boolean hasParameter(HttpRequestResponse request, String paramName) {
-        for (HttpParameter param : request.parameters()) {
-            if (param.name().equalsIgnoreCase(paramName)) {
+    @Override
+    public void httpResponseReceived(HttpResponseReceivedEvent event) {
+        HttpResponse response = event.getHttpResponse();
+
+        if (isDomXss(response)) {
+            logging.logToOutput("DOM-XSS detected in response to: " + event.getHttpRequest().url());
+        }
+    }
+
+    private boolean isOpenRedirect(HttpRequest request) {
+        // Simple check for common Open Redirect patterns in URL parameters
+        List<String> params = request.parameters();
+        for (String param : params) {
+            if (Pattern.compile("(?i)\\b(https?:\\/\\/|www\\.)\\b").matcher(param).find()) {
                 return true;
             }
         }
         return false;
     }
 
-    @Override
-    public void extensionUnloaded() {
-        // Cleanup if needed when extension is unloaded
+    private boolean isDomXss(HttpResponse response) {
+        // Simple check for common DOM-XSS patterns in the response body
+        String responseBody = response.body().toString();
+        return Pattern.compile("(?i)<script>.*(location|document)\\..*(=|\\+|\\|\\|).*</script>").matcher(responseBody).find();
     }
 }

@@ -1,4 +1,4 @@
-## Dns Loadbalancer in C++ using GRPC lib to test for balancerequests & messages!
+## Dns Loadbalancer in C++(protobuf-handler) using GRPC lib to test for balancerequests & messages!
 
 Build the Project:
 1. mkdir build

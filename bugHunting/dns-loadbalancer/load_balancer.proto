@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+service LoadBalancer {
+  rpc BalanceLoad (BalanceRequest) returns (BalanceResponse);
+}
+
+message BalanceRequest {
+  string service_name = 1;
+}
+
+message BalanceResponse {
+  string ip = 1;
+  int32 port = 2;
+}

@@ -1,17 +1,3 @@
-
-GRPC C++  1.64.0
-Main Page
-Related Pages
-Modules
-Namespaces
-Data Structures
-Files
-
-Search
-include
-grpc
-grpc.h
-Go to the documentation of this file.
  /*
   *
   * Copyright 2015-2016 gRPC authors.
@@ -319,4 +305,3 @@ Go to the documentation of this file.
  #endif
   
  #endif /* GRPC_GRPC_H */
-Generated on Fri May 17 2024 01:17:15 for GRPC C++ by   doxygen 1.8.17s

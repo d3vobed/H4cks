@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Text Editor</title>
+</head>
+<body>
+    <h1>Simple Text Editor</h1>
+    <textarea id="textEditor" rows="10" cols="50"></textarea><br>
+    <button onclick="saveText()">Save Text</button>
+    <button onclick="loadText()">Load Text</button>
+
+    <script src="https://cdn.jsdelivr.net/npm/web3/dist/web3.min.js"></script>
+    <script>
+        const contractAddress = 'YOUR_CONTRACT_ADDRESS';
+        const contractABI = [
+            {
+                "constant": true,
+                "inputs": [],
+                "name": "getText",
+                "outputs": [
+                    {
+                        "name": "",
+                        "type": "string"
+                    }
+                ],
+                "payable": false,
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "constant": false,
+                "inputs": [
+                    {
+                        "name": "_text",
+                        "type": "string"
+                    }
+                ],
+                "name": "setText",
+                "outputs": [],
+                "payable": false,
+                "stateMutability": "nonpayable",
+                "type": "function"
+            }
+        ];
+
+        let web3 = new Web3(Web3.givenProvider || "http://localhost:8545");
+        let contract = new web3.eth.Contract(contractABI, contractAddress);
+
+        async function saveText() {
+            const accounts = await web3.eth.requestAccounts();
+            const text = document.getElementById('textEditor').value;
+            await contract.methods.setText(text).send({ from: accounts[0] });
+        }
+
+        async function loadText() {
+            const text = await contract.methods.getText().call();
+            document.getElementById('textEditor').value = text;
+        }
+    </script>
+</body>
+</html>

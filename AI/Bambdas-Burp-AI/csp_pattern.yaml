@@ -1,0 +1,23 @@
+name: csp_pattern
+description: Filter CSP issues from Burp Suite project file
+inputs:
+  - type: file
+    name: burp_project_file
+steps:
+  - name: parse_burp_project
+    type: parse_burp_project
+    parameters:
+      file: "${inputs.burp_project_file}"
+  - name: filter_csp_issues
+    type: filter
+    parameters:
+      rules:
+        - type: header
+          name: Content-Security-Policy
+        - type: header
+          name: X-Content-Security-Policy
+        - type: header
+          name: X-WebKit-CSP
+outputs:
+  - name: csp_issues
+    from: filter_csp_issues.result

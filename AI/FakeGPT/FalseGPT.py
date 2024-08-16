@@ -25,7 +25,7 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator # type: igno
 # Step 1: Google Roads API Setup
 GOOGLE_ROADS_API_KEY = "YOUR_GOOGLE_ROADS_API_KEY"
 def get_road_info(lat, lng):
-    url = f"https://roads.googleapis.com/v1/nearestRoads?points=60.170880,24.942795|60.170879,24.942796|60.170877,24.942796&key=AIzaSyACTB3OKow8rsYh92d8cfQnj_oUWT_jEko"
+    url = f"https://roads.googleapis.com/v1/nearestRoads?points=60.170880,24.942795|60.170879,24.942796|60.170877,24.942796&key=YOUR_GOOGLE_ROADS_API_KEY"
     response = requests.get(url)
     return response.json()
 

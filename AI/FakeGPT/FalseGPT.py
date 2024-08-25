@@ -112,3 +112,8 @@ print("Predicted class:", prediction)
 
 The third value `(1.0000000e+00)` indicates that the model is confident the image is a car.
 """
+
+
+model.save('model.h5')
+
+""Saving it all to a matlab compartable file""
